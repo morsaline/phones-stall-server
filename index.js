@@ -20,10 +20,37 @@ async function run() {
   try {
     const phonesStall = client.db("phonesStall");
     const usersCollection = phonesStall.collection("users");
+    const phonesCollection = phonesStall.collection("phonesCollection");
+    const bookingsCollection = phonesStall.collection("bookings");
 
     app.post("/users", async (req, res) => {
       const user = req.body;
       const result = await usersCollection.insertOne(user);
+      res.send(result);
+    });
+
+    // phhone query
+    app.get("/phones", async (req, res) => {
+      const query = {};
+      const result = await phonesCollection.find(query).toArray();
+      res.send(result);
+    });
+    app.get("/brands", async (req, res) => {
+      const brands = await phonesCollection.distinct("brand");
+      res.send(brands);
+    });
+    app.get("/phones/:brand", async (req, res) => {
+      const brand = req.params.brand;
+      const query = {
+        brand: brand,
+      };
+      const phones = await phonesCollection.find(query).toArray();
+
+      res.send(phones);
+    });
+    app.post("/bookings", async (req, res) => {
+      const bookings = req.body;
+      const result = await bookingsCollection.insertOne(bookings);
       res.send(result);
     });
   } finally {
@@ -32,9 +59,9 @@ async function run() {
 run().catch((err) => console.log(err));
 
 app.get("/", (req, res) => {
-  console.log("server running");
+  res.send("server is running");
 });
 
 app.listen(port, () => {
-  console.log(port);
+  console.log(port, "sserrrr");
 });

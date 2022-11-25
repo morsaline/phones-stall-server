@@ -9,7 +9,7 @@ app.use(cors());
 app.use(express.json());
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.t17zvb5.mongodb.net/?retryWrites=true&w=majority`;
-// console.log(uri);
+console.log(uri);
 const client = new MongoClient(uri, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
@@ -66,7 +66,7 @@ async function run() {
       const brands = await phonesCollection.distinct("brand");
       res.send(brands);
     });
-   
+
     app.get("/phones/:brand", async (req, res) => {
       const brand = req.params.brand;
       const query = {
@@ -78,8 +78,8 @@ async function run() {
     });
     app.post("/phones", async (req, res) => {
       const product = req.body;
-      const result = await phonesCollection.insertOne(product)
-      res.send(result)
+      const result = await phonesCollection.insertOne(product);
+      res.send(result);
     });
     app.post("/bookings", async (req, res) => {
       const bookings = req.body;
@@ -103,6 +103,15 @@ async function run() {
       };
       const result = await bookingsCollection.find(query).toArray();
       res.send(result);
+      //my products
+      app.get("/myproducts/:email", async (req, res) => {
+        const email = req.params.email;
+        const query = {
+          email: email,
+        };
+        const result = await phonesCollection.find(query).toArray();
+        res.send(result);
+      });
     });
   } finally {
   }

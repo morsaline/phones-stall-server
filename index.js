@@ -66,6 +66,7 @@ async function run() {
       const brands = await phonesCollection.distinct("brand");
       res.send(brands);
     });
+   
     app.get("/phones/:brand", async (req, res) => {
       const brand = req.params.brand;
       const query = {
@@ -74,6 +75,11 @@ async function run() {
       const phones = await phonesCollection.find(query).toArray();
 
       res.send(phones);
+    });
+    app.post("/phones", async (req, res) => {
+      const product = req.body;
+      const result = await phonesCollection.insertOne(product)
+      res.send(result)
     });
     app.post("/bookings", async (req, res) => {
       const bookings = req.body;

@@ -127,6 +127,13 @@ async function run() {
       const result = await cursor.toArray();
       res.send(result);
     });
+
+    app.get("/allbuyers", async (req, res) => {
+      const filter = { role: { $in: ["buyer"] } };
+      const cursor = usersCollection.find(filter);
+      const result = await cursor.toArray();
+      res.send(result);
+    });
   } finally {
   }
 }

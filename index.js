@@ -23,12 +23,39 @@ async function run() {
     const phonesCollection = phonesStall.collection("phonesCollection");
     const bookingsCollection = phonesStall.collection("bookings");
 
-    app.post("/users", async (req, res) => {
+    app.put("/users", async (req, res) => {
       const user = req.body;
-      const result = await usersCollection.insertOne(user);
+      const filter = {
+        email: user.email,
+      };
+      const options = { upsert: true };
+
+      const updatedDoc = {
+        $set: {
+          name: user.name,
+          email: user.email,
+          role: user.role,
+        },
+      };
+      const result = await usersCollection.updateOne(
+        filter,
+        updatedDoc,
+        options
+      );
       res.send(result);
     });
+    app.get("/users", async (req, res) => {
+      const email = req.query.email;
 
+      let query = {};
+      if (email) {
+        query = {
+          email: email,
+        };
+      }
+      const result = await usersCollection.find(query).toArray();
+      res.send(result);
+    });
     // phhone query
     app.get("/phones", async (req, res) => {
       const query = {};
@@ -53,6 +80,7 @@ async function run() {
       const result = await bookingsCollection.insertOne(bookings);
       res.send(result);
     });
+    // verify role
   } finally {
   }
 }

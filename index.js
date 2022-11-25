@@ -104,14 +104,28 @@ async function run() {
       const result = await bookingsCollection.find(query).toArray();
       res.send(result);
       //my products
-      app.get("/myproducts/:email", async (req, res) => {
-        const email = req.params.email;
-        const query = {
-          email: email,
-        };
-        const result = await phonesCollection.find(query).toArray();
-        res.send(result);
-      });
+
+      // app.get("/phones", async (req, res) => {
+      //   const query = {};
+      //   const result = await phonesCollection.find(query).toArray();
+      //   res.send(result);
+      // });
+    });
+
+    app.get("/myproducts/:email", async (req, res) => {
+      const email = req.params.email;
+      const query = {
+        email: email,
+      };
+      const result = await phonesCollection.find(query).toArray();
+      res.send(result);
+    });
+
+    app.get("/allsellers", async (req, res) => {
+      const filter = { role: { $in: ["seller"] } };
+      const cursor = usersCollection.find(filter);
+      const result = await cursor.toArray();
+      res.send(result);
     });
   } finally {
   }

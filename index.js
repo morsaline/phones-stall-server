@@ -81,6 +81,23 @@ async function run() {
       res.send(result);
     });
     // verify role
+    app.get("/users/role/:email", async (req, res) => {
+      const email = req.params.email;
+      const query = {
+        email: email,
+      };
+      const result = await usersCollection.findOne(query);
+      res.send(result);
+    });
+    //my orders
+    app.get("/myorders/:email", async (req, res) => {
+      const email = req.params.email;
+      const query = {
+        email: email,
+      };
+      const result = await bookingsCollection.find(query).toArray();
+      res.send(result);
+    });
   } finally {
   }
 }

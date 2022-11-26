@@ -18,6 +18,25 @@ const client = new MongoClient(uri, {
   serverApi: ServerApiVersion.v1,
 });
 
+function verifyJWT(req, res, next) {
+  // console.log("token", req.headers.authorization);
+  const authHeader = req.headers.authorization;
+  console.log(authHeader);
+  if (!authHeader) {
+    return res.status(401).send({ message: "unauthorized access" });
+  }
+  const token = authHeader.split(" ")[1];
+  console.log(token);
+  jwt.verify(token, process.env.ACCESS_TOKEN, (err, decoded) => {
+    if (err) {
+      return res.status(403).send({ message: "forbidden access" });
+    }
+    req.decoded = decoded;
+
+    next();
+  });
+}
+
 async function run() {
   try {
     const phonesStall = client.db("phonesStall");
@@ -75,6 +94,24 @@ async function run() {
         };
       }
       const result = await usersCollection.find(query).toArray();
+      res.send(result);
+    });
+
+    app.put("/users/:id", async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: ObjectId(id) };
+      const options = { upsert: true };
+      // const result = await usersCollection.findOne(query)
+      const updatedDoc = {
+        $set: {
+          status: "verified",
+        },
+      };
+      const result = await usersCollection.updateOne(
+        filter,
+        updatedDoc,
+        options
+      );
       res.send(result);
     });
     // phhone query
@@ -135,6 +172,7 @@ async function run() {
     });
     app.get("/orders", async (req, res) => {
       const query = {};
+
       const result = await bookingsCollection.find(query).toArray();
       res.send(result);
     });
@@ -146,11 +184,17 @@ async function run() {
     });
 
     //my orders
-    app.get("/myorders/:email", async (req, res) => {
+    app.get("/myorders/:email", verifyJWT, async (req, res) => {
       const email = req.params.email;
+      const decodedEmail = req.decoded.email;
+      if (email !== decodedEmail) {
+        return res.status(403).send({ message: "forbidden access" });
+      }
+
       const query = {
         email: email,
       };
+
       const result = await bookingsCollection.find(query).toArray();
       res.send(result);
       //my products
@@ -164,9 +208,7 @@ async function run() {
 
     app.get("/myproducts/:email", async (req, res) => {
       const email = req.params.email;
-      const query = {
-        email: email,
-      };
+      const query = { email: email };
       const result = await phonesCollection.find(query).toArray();
       res.send(result);
     });
@@ -204,6 +246,12 @@ async function run() {
       const id = req.params.id;
       const query = { _id: ObjectId(id) };
       const result = await usersCollection.deleteOne(query);
+      res.send(result);
+    });
+    app.delete("/product/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: ObjectId(id) };
+      const result = await phonesCollection.deleteOne(query);
       res.send(result);
     });
     app.delete("/user/:id", async (req, res) => {

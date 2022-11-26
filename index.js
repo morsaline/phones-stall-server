@@ -142,13 +142,17 @@ async function run() {
       const updatedDoc = {
         $set: {
           paid: true,
-          trsnsactionId: payment.transactionId,
+          transactionId: payment.transactionId,
         },
       };
       const updateResult = await bookingsCollection.updateOne(
         filter,
         updatedDoc
       );
+      // const updateproduct = await phonesCollection.updateOne(
+      //   filter,
+      //   updatedDoc
+      // );
       res.send(result);
     });
     app.post("/phones", async (req, res) => {
@@ -234,6 +238,12 @@ async function run() {
       const result = await cursor.toArray();
       res.send(result);
     });
+    app.get("/reporteditem", async (req, res) => {
+      const filter = { reported: { $in: [true] } };
+      const cursor = phonesCollection.find(filter);
+      const result = await cursor.toArray();
+      res.send(result);
+    });
 
     app.get("/allbuyers", async (req, res) => {
       const filter = { role: { $in: ["buyer"] } };
@@ -248,10 +258,32 @@ async function run() {
       const result = await usersCollection.deleteOne(query);
       res.send(result);
     });
+    app.delete("/user/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: ObjectId(id) };
+      const result = await phonesCollection.deleteOne(query);
+      res.send(result);
+    });
     app.delete("/product/:id", async (req, res) => {
       const id = req.params.id;
       const query = { _id: ObjectId(id) };
       const result = await phonesCollection.deleteOne(query);
+      res.send(result);
+    });
+    app.put("/product/reported/:id", async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: ObjectId(id) };
+      const options = { upsert: true };
+      const updatedDoc = {
+        $set: {
+          reported: true,
+        },
+      };
+      const result = await phonesCollection.updateOne(
+        filter,
+        updatedDoc,
+        options
+      );
       res.send(result);
     });
     app.delete("/user/:id", async (req, res) => {

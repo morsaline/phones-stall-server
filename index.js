@@ -11,7 +11,7 @@ app.use(cors());
 app.use(express.json());
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.t17zvb5.mongodb.net/?retryWrites=true&w=majority`;
-console.log(uri);
+// console.log(uri);
 const client = new MongoClient(uri, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
@@ -21,7 +21,7 @@ const client = new MongoClient(uri, {
 function verifyJWT(req, res, next) {
   // console.log("token", req.headers.authorization);
   const authHeader = req.headers.authorization;
-  console.log(authHeader);
+  // console.log(authHeader);
   if (!authHeader) {
     return res.status(401).send({ message: "unauthorized access" });
   }
@@ -129,6 +129,11 @@ async function run() {
       const brand = req.params.brand;
       const query = {
         brand: brand,
+        $and: [
+          {
+            sold: { $ne: true },
+          },
+        ],
       };
       const phones = await phonesCollection.find(query).toArray();
 
@@ -148,6 +153,19 @@ async function run() {
       const updateResult = await bookingsCollection.updateOne(
         filter,
         updatedDoc
+      );
+      const productId = payment.productId;
+      const productFilter = {
+        _id: ObjectId(productId),
+      };
+      const productUpdatedDoc = {
+        $set: {
+          sold: true,
+        },
+      };
+      const updateProductStatus = await phonesCollection.updateOne(
+        productFilter,
+        productUpdatedDoc
       );
       // const updateproduct = await phonesCollection.updateOne(
       //   filter,
@@ -188,7 +206,7 @@ async function run() {
     });
 
     //my orders
-    app.get("/myorders/:email", verifyJWT, async (req, res) => {
+    app.get("/myorders/:email", async (req, res) => {
       const email = req.params.email;
       const decodedEmail = req.decoded.email;
       if (email !== decodedEmail) {
@@ -258,7 +276,7 @@ async function run() {
       const result = await usersCollection.deleteOne(query);
       res.send(result);
     });
-    app.delete("/user/:id", async (req, res) => {
+    app.delete("/reporteditem/:id", verifyJWT, async (req, res) => {
       const id = req.params.id;
       const query = { _id: ObjectId(id) };
       const result = await phonesCollection.deleteOne(query);
@@ -286,6 +304,39 @@ async function run() {
       );
       res.send(result);
     });
+
+    //put addvertise set
+
+    app.put("/advertise/:id", async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: ObjectId(id) };
+      const options = { upsert: true };
+      const updateDoc = {
+        $set: {
+          advertise: true,
+        },
+      };
+      const result = await phonesCollection.updateOne(
+        filter,
+        updateDoc,
+        options
+      );
+      res.send(result);
+    });
+
+    app.get("/advertisedproducts", async (req, res) => {
+      const query = {
+        advertise: true,
+        $and: [
+          {
+            sold: { $ne: true },
+          },
+        ],
+      };
+      const result = await phonesCollection.find(query).toArray();
+      res.send(result);
+    });
+
     app.delete("/user/:id", async (req, res) => {
       const id = req.params.id;
       const query = { _id: ObjectId(id) };

@@ -208,10 +208,6 @@ async function run() {
     //my orders
     app.get("/myorders/:email", async (req, res) => {
       const email = req.params.email;
-      const decodedEmail = req.decoded.email;
-      if (email !== decodedEmail) {
-        return res.status(403).send({ message: "forbidden access" });
-      }
 
       const query = {
         email: email,
